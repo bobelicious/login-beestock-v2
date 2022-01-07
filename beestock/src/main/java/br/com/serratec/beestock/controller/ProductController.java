@@ -8,11 +8,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import br.com.serratec.beestock.dto.ProductDTO;
+import br.com.serratec.beestock.dto.ProductPostDTO;
 import br.com.serratec.beestock.exceptions.NotFindException;
 import br.com.serratec.beestock.model.Product;
 import br.com.serratec.beestock.model.ProductPhoto;
@@ -27,11 +29,13 @@ public class ProductController {
     @Autowired
     private ProductPhotoService productPhotoService;
 
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
     @GetMapping
     public ResponseEntity<List<ProductDTO>> findAll() {
         return ResponseEntity.ok().body(productService.findAll());
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
     @GetMapping("/{id}")
     public ResponseEntity<?> findById(@PathVariable Integer id) {
         try {
@@ -42,10 +46,11 @@ public class ProductController {
         }
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping
     public ResponseEntity<?> addProduct (@RequestPart Product product, @RequestParam MultipartFile file){
         try {
-           ProductDTO productDTO = productService.addProduct(product, file);
+           ProductPostDTO productDTO = productService.addProduct(product, file);
             URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(product.getId())
             .toUri();
             return ResponseEntity.created(uri).body(productDTO);
@@ -53,7 +58,7 @@ public class ProductController {
            return ResponseEntity.unprocessableEntity().body(e.getMessage());
         }
     }
-
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<?> attProduct (@PathVariable Integer id, @RequestPart Product product, @RequestParam MultipartFile file){
         try {
@@ -66,6 +71,7 @@ public class ProductController {
         }
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteProduct (@PathVariable Integer id){
         try {
@@ -76,6 +82,7 @@ public class ProductController {
         }
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
     @GetMapping("/{id}/foto")
     public ResponseEntity<byte[]> searchPhoto(@PathVariable Integer id){
         ProductPhoto foto = productPhotoService.search(id);

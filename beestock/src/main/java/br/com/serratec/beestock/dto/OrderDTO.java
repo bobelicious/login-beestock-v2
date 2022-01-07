@@ -15,6 +15,7 @@ public class OrderDTO {
     private Double totalPurchase;
     private LocalDate date;
     private SellerDTO seller;
+    private String returnObs;
     private List<OrderProductDTO> orderProducts;
 
     
@@ -27,6 +28,7 @@ public class OrderDTO {
         this.date = order.getDate();
         this.seller = new SellerDTO(order.getUser());
         this.orderProducts = getItemOrder(order.getOrdersProducts());
+        this.returnObs=order.getReturnObs();
     }
 
     private List<OrderProductDTO> getItemOrder(List<OrderProduct> orderProducts){
@@ -91,5 +93,13 @@ public class OrderDTO {
 
     public void setStatus(OrderStatus status) {
         this.status = status;
+    }
+
+    public String getReturnObs() {
+        return returnObs;
+    }
+
+    public void setReturnObs(String returnObs) {
+        this.returnObs = returnObs;
     }
 }

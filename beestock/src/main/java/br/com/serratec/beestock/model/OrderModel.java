@@ -24,9 +24,15 @@ public class OrderModel {
     private LocalDate date;
 
     @Column
+    private LocalDate returnDate;
+
+    @Column
+    private String returnObs;
+
+    @Column
     private Double totalPurchase;
 
-    @OneToMany(mappedBy = "order", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "order", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     private List<OrderProduct> ordersProducts;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -91,6 +97,22 @@ public class OrderModel {
 
     public void setUser(UserModel user) {
         this.user = user;
+    }
+
+    public LocalDate getReturnDate() {
+        return returnDate;
+    }
+
+    public void setReturnDate(LocalDate returnDate) {
+        this.returnDate = returnDate;
+    }
+
+    public String getReturnObs() {
+        return returnObs;
+    }
+
+    public void setReturnObs(String returnObs) {
+        this.returnObs = returnObs;
     }
 
     @Override

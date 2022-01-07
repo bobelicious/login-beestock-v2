@@ -20,6 +20,7 @@ import br.com.serratec.beestock.exceptions.NotFindException;
 import br.com.serratec.beestock.model.Address;
 import br.com.serratec.beestock.model.UserModel;
 import br.com.serratec.beestock.model.UserProfile;
+import br.com.serratec.beestock.model.UserStatus;
 import br.com.serratec.beestock.repository.UserProfileRepository;
 import br.com.serratec.beestock.repository.UserRepository;
 
@@ -36,6 +37,7 @@ public class UserService {
     private ProfileService profileService;
     @Autowired
     private AddressService addressService;
+
 
     /**
      * metodo que retorna a lista de todos os Usuarios
@@ -96,6 +98,7 @@ public class UserService {
         userAttDTO.setAddress(addressService.findAddress(userAttDTO.getAddress().getCep(), userAttDTO.getAddress().getNumber()));
        UserModel user = new UserModel(userAttDTO);
        user.setAddress(userAttDTO.getAddress());
+       user.setUserStatus(UserStatus.ATIVO);
        userRepository.save(user);
 
        for (UserProfile userProfile: userAttDTO.getUserProfiles()){
@@ -151,5 +154,16 @@ public class UserService {
         Optional<UserModel> user = userRepository.findByCpf(nome);
         System.out.println(nome);
         return user.get();
+    }
+
+    public UserDTO fileUser (Integer id) throws NotFindException{
+        Optional<UserModel> user = userRepository.findById(id);
+        if(user.isEmpty()){
+            throw new NotFindException("Usuario não encontrado");
+         }
+         user.get().setUserStatus(UserStatus.ARQUIVADO);
+         user.get().setPassword(null);
+         userRepository.save(user.get());
+         return new UserDTO(user.get());
     }
 }

@@ -16,6 +16,7 @@ import br.com.serratec.beestock.model.Availability;
 import br.com.serratec.beestock.model.OrderModel;
 import br.com.serratec.beestock.model.OrderProduct;
 import br.com.serratec.beestock.model.OrderStatus;
+import br.com.serratec.beestock.model.Product;
 import br.com.serratec.beestock.repository.OrderRepository;
 import br.com.serratec.beestock.repository.ProductRepository;
 
@@ -68,8 +69,7 @@ public class OrderService {
             orderProduct.setOrder(newOrder);
             orderProduct.setProduct(productRepository.findByCodeSKU(orderProduct.getProduct().getCodeSKU()).get());
             orderProduct.setUnitPrice(orderProduct.getProduct().getPrice());
-            orderProduct.setSubtotal(
-                    (orderProduct.getUnitPrice() - orderProduct.getDiscount()) * orderProduct.getQuantity());
+            orderProduct.setSubtotal((orderProduct.getUnitPrice() - orderProduct.getDiscount()) * orderProduct.getQuantity());
             orderProductService.addOrderProduct(orderProduct);
             total += orderProduct.getSubtotal();
             newOrderProducts.add(orderProduct);
@@ -149,15 +149,74 @@ public class OrderService {
      * @throws CompletedOrderException
      * @throws NotFindException
      */
-    public OrderDTO editOrder(OrderModel order) throws CompletedOrderException, NotFindException {
-        Optional<OrderModel> o = orderRepository.findById(order.getId());
+    public OrderDTO editOrder(List<OrderProduct> orderProducts, Integer id) throws CompletedOrderException, NotFindException {
+        Optional<OrderModel> o = orderRepository.findById(id);
+        Double total = 0.0;
+        List<OrderProduct> newOrderProducts = new ArrayList<>();
         if (o.isPresent() && o.get().getOrderStatus() == OrderStatus.CONCLUIDO) {
             throw new CompletedOrderException("Pedido finalizado não pode ser alterado");
         } else if (o.isEmpty()) {
             throw new NotFindException("Pedido não encontrado");
         }
         OrderModel newOrder = o.get();
-        orderRepository.save(order);
+        for (OrderProduct orderProduct : orderProducts) {
+            orderProduct.setOrder(newOrder);
+            orderProduct.setProduct(productRepository.findByCodeSKU(orderProduct.getProduct().getCodeSKU()).get());
+            orderProduct.setUnitPrice(orderProduct.getProduct().getPrice());
+            orderProduct.setSubtotal((orderProduct.getUnitPrice() - orderProduct.getDiscount()) * orderProduct.getQuantity());
+            orderProductService.addOrderProduct(orderProduct);
+            total += orderProduct.getSubtotal();
+            newOrderProducts.add(orderProduct);
+        }
+        newOrder.setTotalPurchase(total);
+        orderProductService.romoveOrderproduct(newOrder.getOrdersProducts());
+        newOrder.setOrdersProducts(newOrderProducts);
+        orderRepository.save(newOrder);
         return new OrderDTO(newOrder);
+    }
+
+    /**cancela o pedido */
+    public void cancelOrder (Integer id) throws NotFindException, CompletedOrderException{
+        Optional<OrderModel> order = orderRepository.findById(id);
+        if(order.isEmpty()){
+            throw new NotFindException("Pedido não encontrado");
+        }else if(order.get().getOrderStatus()== OrderStatus.CONCLUIDO){
+            throw new CompletedOrderException("Não é possível cancelar um pedido finalizado");
+        }else{
+            orderRepository.deleteById(id);
+        }
+    }
+
+    /**devolve o pedido */
+    public void giveBackOrder(Integer id,OrderModel order) throws NotFindException, CompletedOrderException{
+        Optional<OrderModel> newOrder = orderRepository.findById(id);
+        if(newOrder.isEmpty()){
+            throw new NotFindException("Pedido não encontrado");
+        }else if(newOrder.get().getOrderStatus()==OrderStatus.INCONCLUIDO || newOrder.get().getOrderStatus()==OrderStatus.DEVOLVIDO){
+            throw new CompletedOrderException("Pedidos que não estiverem concluidos ou estiverem devolvidos não podem ser devolvidos");
+        }else{
+            giveBackProduct(newOrder.get());
+            newOrder.get().setOrderStatus(OrderStatus.DEVOLVIDO);
+            newOrder.get().setReturnDate(LocalDate.now());
+            newOrder.get().setReturnObs(order.getReturnObs());
+            orderRepository.save(newOrder.get());
+        }
+    }
+
+    /**atualiza a quantidade em estoque com base na devolucao do pedido */
+    private void  giveBackProduct(OrderModel order){
+        List<OrderProduct> orderProducts= order.getOrdersProducts();
+        Integer buyQuantity= 0;
+        Integer currentQuantity=0;
+        Integer newCurrentQuantity=0;
+        Product product = new Product();
+        for (OrderProduct orderProduct : orderProducts) {
+            product = orderProduct.getProduct();
+            buyQuantity = orderProduct.getQuantity();
+            currentQuantity=product.getCurrentQuantity();
+            newCurrentQuantity=currentQuantity+buyQuantity;
+            product.setCurrentQuantity(newCurrentQuantity);
+            productRepository.save(product);
+        }
     }
 }

@@ -27,20 +27,21 @@ import br.com.serratec.beestock.service.UserService;
 @RequestMapping("/usuarios")
 public class UserController {
     @Autowired
-    UserService usuarioService;
+    UserService userService;
     @Autowired
     PhotoService fotoService;
 
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
     @GetMapping
     public List<UserDTO> findAll() {
-        return usuarioService.findAll();
+        return userService.findAll();
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping
     public ResponseEntity<?> saveUsuario(@Valid @RequestBody UserAddDTO usuarioInserirDTO){
         try {
-            UserDTO usuarioDTO = usuarioService.saveEntity(usuarioInserirDTO);
+            UserDTO usuarioDTO = userService.saveEntity(usuarioInserirDTO);
             URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(usuarioDTO.getId())
                     .toUri();
             return ResponseEntity.created(uri).body(usuarioDTO);
@@ -49,11 +50,12 @@ public class UserController {
         }
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
     @PutMapping("/{id}")
     public ResponseEntity<?> attUser(@PathVariable Integer id,
             @Valid @RequestBody UserAttDTO usuarioAttDTO) {
         try {
-            UserDTO usuarioDTO = usuarioService.attUsuario(usuarioAttDTO, id);
+            UserDTO usuarioDTO = userService.attUsuario(usuarioAttDTO, id);
             URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(usuarioDTO.getId())
                     .toUri();
             return ResponseEntity.created(uri).body(usuarioDTO);
@@ -62,6 +64,7 @@ public class UserController {
         }
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
     @GetMapping("/{id}/foto")
     public ResponseEntity<byte[]> buscarPorFoto(@PathVariable Integer id) throws NotFindException {
         Photo foto = fotoService.buscar(id);
@@ -72,12 +75,24 @@ public class UserController {
 
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Integer id){
         try {
-            usuarioService.deleteUser(id);
+            userService.deleteUser(id);
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
+            return ResponseEntity.unprocessableEntity().body(e.getMessage());
+        }
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PutMapping("/arquivar/{id}")
+    public ResponseEntity<?> fileUser(@PathVariable Integer id){
+        try {
+            UserDTO userDTO = userService.fileUser(id);
+            return ResponseEntity.ok().body(userDTO);
+        } catch (NotFindException e) {
             return ResponseEntity.unprocessableEntity().body(e.getMessage());
         }
     }

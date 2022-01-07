@@ -1,7 +1,10 @@
 package br.com.serratec.beestock.dto;
 
+import java.net.URI;
 import java.time.LocalDate;
 import java.util.List;
+
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import br.com.serratec.beestock.model.Product;
 import br.com.serratec.beestock.model.Availability;
@@ -9,7 +12,10 @@ import br.com.serratec.beestock.model.Offer;
 import br.com.serratec.beestock.model.Shipping;
 
 public class ProductDTO {
+    private Integer id;
     private String codeSKU;
+    private LocalDate date;
+    private Availability availability;
     private String name;
     private String category;
     private String brand;
@@ -18,14 +24,13 @@ public class ProductDTO {
     private Integer currentQuantity;
     private Double price;
     private Offer sale;
-    private LocalDate date;
-    private List<Shipping> shipping;
-    private Integer id;
     private Double markUp;
-    private Availability availability;
+    private List<Shipping> shipping;
+    private String photo;
 
     public ProductDTO(Product product) {
         this.id = product.getId();
+        this.availability = product.getAvailability();
         this.name = product.getName();
         this.codeSKU = product.getCodeSKU();
         this.brand = product.getBrand();
@@ -36,7 +41,20 @@ public class ProductDTO {
         this.price = product.getPrice();
         this.shipping = product.getShipping();
         this.markUp = product.getMarkUp();
-        this.availability = product.getAvailability();
+        this.photo = uriGenerator(product);
+    }
+
+    public String uriGenerator (Product product){
+        Integer id = product.getProductPhoto().getId();
+        String response;
+        if(id==null){
+            response="";
+            return response;
+        }
+        URI uri = ServletUriComponentsBuilder.fromCurrentContextPath().path("/produtos/{id}/foto")
+        .buildAndExpand(id).toUri();
+        response=uri.toString();
+        return response;
     }
 
     public Integer getId() {
@@ -149,5 +167,13 @@ public class ProductDTO {
 
     public void setAvailability(Availability availability) {
         this.availability = availability;
+    }
+
+    public String getPhoto() {
+        return photo;
+    }
+
+    public void setPhoto(String photo) {
+        this.photo = photo;
     }
 }

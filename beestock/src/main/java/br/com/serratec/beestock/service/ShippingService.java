@@ -8,7 +8,6 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import br.com.serratec.beestock.model.Availability;
 import br.com.serratec.beestock.model.Shipping;
 import br.com.serratec.beestock.repository.ShippingRepository;
 
@@ -33,7 +32,6 @@ public class ShippingService {
         shipping.setDeliveryDate(LocalDate.now());
         shipping.setBatchCode(batchGenerator());
         shipping.setAvgCost(shipping.getCost()/shipping.getQuantity());
-        shipping.getProduct().setAvailability(Availability.DISPONIVEL);
         shippingRepository.save(shipping);
         productService.attQauntity(shipping.getProduct().getId(), shipping);
         return shipping;

@@ -47,6 +47,9 @@ public class UserModel {
     @OneToMany(mappedBy = "user")
     private List<OrderModel> orders;
 
+    @Enumerated(EnumType.STRING)
+    private UserStatus userStatus;
+
     public UserModel() {
     }
 
@@ -146,6 +149,14 @@ public class UserModel {
 
     public void setOrders(List<OrderModel> orders) {
         this.orders = orders;
+    }
+
+    public UserStatus getUserStatus() {
+        return userStatus;
+    }
+
+    public void setUserStatus(UserStatus userStatus) {
+        this.userStatus = userStatus;
     }
 
     @Override

@@ -2,9 +2,6 @@ package br.com.serratec.beestock.model;
 
 import javax.persistence.*;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-
 @Entity
 public class Photo {
     @Id
@@ -22,7 +19,6 @@ public class Photo {
 
     @OneToOne()
     @JoinColumn(name = "id_user")
-    @JsonIgnore
     private UserModel user;
 
     public Integer getId() {

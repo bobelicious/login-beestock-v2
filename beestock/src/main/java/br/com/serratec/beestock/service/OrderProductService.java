@@ -30,4 +30,11 @@ public class OrderProductService {
     public void addOrderProduct(OrderProduct orderProduct){
         orderProductRepository.save(orderProduct);
     }
+
+    @Transactional
+    public void romoveOrderproduct(List<OrderProduct> orderProducts){
+        for (OrderProduct orderProduct : orderProducts) {
+            orderProductRepository.deleteById(orderProduct.getId());
+        }
+    }
 }

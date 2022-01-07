@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import br.com.serratec.beestock.dto.ProductDTO;
+import br.com.serratec.beestock.dto.ProductPostDTO;
 import br.com.serratec.beestock.exceptions.NotFindException;
 import br.com.serratec.beestock.model.Availability;
 import br.com.serratec.beestock.model.Categories;
@@ -55,11 +56,11 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductDTO addProduct(Product product, MultipartFile file) throws IOException {
+    public ProductPostDTO addProduct(Product product, MultipartFile file) throws IOException {
         product.setCategory(verify(product.getCategory()));
         product.setCodeSKU(skuGenerator());
         productPhotoService.insert(productRepository.save(product), file);
-        return new ProductDTO(product);
+        return new ProductPostDTO(product);
     }
 
     private String skuGenerator(){
@@ -127,6 +128,7 @@ public class ProductService {
         quantity = shipping.getQuantity() + quantity;
         product.get().setCurrentQuantity(quantity);
         product.get().setId(product.get().getId());
+        product.get().setAvailability(Availability.DISPONIVEL);
         productRepository.save(product.get());
     }
 }

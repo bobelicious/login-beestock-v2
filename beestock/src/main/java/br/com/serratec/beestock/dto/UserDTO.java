@@ -1,10 +1,14 @@
 package br.com.serratec.beestock.dto;
 
+import java.net.URI;
+
 import org.springframework.beans.factory.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import br.com.serratec.beestock.model.Address;
 import br.com.serratec.beestock.model.UserModel;
 import br.com.serratec.beestock.model.UserProfile;
+import br.com.serratec.beestock.model.UserStatus;
 import br.com.serratec.beestock.repository.UserProfileRepository;
 import br.com.serratec.beestock.service.ProfileService;
 
@@ -14,9 +18,11 @@ public class UserDTO {
     private String email;
     private String cpf;
     private String rg;
-    private Address address;
     private String phone;
     private String cargo;
+    private String photo;
+    private UserStatus status;
+    private Address address;
 
     @Autowired
     ProfileService profileService;
@@ -35,6 +41,8 @@ public class UserDTO {
         this.address =  user.getAddress();
         this.phone =  user.getPhone();
         this.cargo = getCargo(user);
+        this.photo = uriGenerator(user.getId());
+        this.status= user.getUserStatus();
     }
 
     private String getCargo(UserModel user){
@@ -43,6 +51,12 @@ public class UserDTO {
 		     cargo =	userProfile.getProfile().getCargo();
 		}
         return cargo;
+    }
+
+    public String uriGenerator (Integer id){
+        URI uri = ServletUriComponentsBuilder.fromCurrentContextPath().path("/usuarios/{id}/foto")
+        .buildAndExpand(id).toUri();
+        return uri.toString();
     }
 
     public Integer getId() {
@@ -109,19 +123,19 @@ public class UserDTO {
         this.cargo = cargo;
     }
 
-    public ProfileService getProfileService() {
-        return profileService;
+    public String getPhoto() {
+        return photo;
     }
 
-    public void setProfileService(ProfileService profileService) {
-        this.profileService = profileService;
+    public void setPhoto(String photo) {
+        this.photo = photo;
     }
 
-    public UserProfileRepository getUserProfileRepository() {
-        return userProfileRepository;
+    public UserStatus getStatus() {
+        return status;
     }
 
-    public void setUserProfileRepository(UserProfileRepository userProfileRepository) {
-        this.userProfileRepository = userProfileRepository;
+    public void setStatus(UserStatus status) {
+        this.status = status;
     }
 }
